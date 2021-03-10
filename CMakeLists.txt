@@ -8,32 +8,13 @@ add_compile_options(-std=c++11)
 # Human_localization adding libraries START #
 #############################################
 
-option(LINK_SHARED_ZED "Link with the ZED SDK shared executable" ON)
-
-if(COMMAND cmake_policy)
-        cmake_policy(SET CMP0003 OLD)
-        cmake_policy(SET CMP0004 OLD)
-        cmake_policy(SET CMP0015 OLD)
-endif(COMMAND cmake_policy)
-
-find_package(ZED 3 REQUIRED)
-find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED)
 
-IF(NOT WIN32)
-    SET(SPECIAL_OS_LIBS "pthread" "X11")
-    add_definitions(-Wno-write-strings)
-ENDIF()
-
-include_directories(${ZED_INCLUDE_DIRS})
-include_directories(${CUDA_INCLUDE_DIRS})
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 # write correct path to dlib library
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3d_party/dlib/ dlib_build)
 
-link_directories(${ZED_LIBRARY_DIR})
-link_directories(${CUDA_LIBRARY_DIRS})
 link_directories(${OpenCV_LIBRARY_DIRS})
 
 FILE(GLOB_RECURSE SRC_FILES src/*.c*)
@@ -51,7 +32,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   roslib
-  zed_nodelets
   cv_bridge
   human_vision_exchange
 )
@@ -146,7 +126,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  CATKIN_DEPENDS cv_bridge human_vision_exchange roscpp roslib std_msgs zed_nodelets 
+  CATKIN_DEPENDS cv_bridge human_vision_exchange roscpp roslib std_msgs
 )
 
 ###########
@@ -205,27 +185,23 @@ include_directories(
 
 add_executable(${PROJECT_NAME} ${HDR_FILES} ${SRC_FILES} main_src/main.cpp)
 #add_executable(${PROJECT_NAME}_tests ${HDR_FILES} ${SRC_FILES} ${TEST_SRC_FILES} )
+add_executable(${PROJECT_NAME}_findFaceVectorMock ${HDR_FILES} mocks/findFaceVectorsMock.cpp)
 add_definitions(-std=c++14)
 
-if (LINK_SHARED_ZED)
-    SET(ZED_LIBS ${ZED_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY} ${CUDA_DEP_LIBRARIES_ZED})
-else()
-    SET(ZED_LIBS ${ZED_STATIC_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_LIBRARY})
-endif()
-
 target_link_libraries(${PROJECT_NAME}
-                        ${SPECIAL_OS_LIBS}
-                        ${ZED_LIBS}
                         ${OpenCV_LIBRARIES}
                         ${catkin_LIBRARIES}
                         dlib::dlib)
 
 #target_link_libraries(${PROJECT_NAME}_tests
-#                        ${SPECIAL_OS_LIBS}
-#                        ${ZED_LIBS}
 #                        ${OpenCV_LIBRARIES}
 #                        ${catkin_LIBRARIES}
 #                        dlib::dlib)
+
+target_link_libraries(${PROJECT_NAME}_findFaceVectorMock
+                        ${OpenCV_LIBRARIES}
+                        ${catkin_LIBRARIES}
+                        dlib::dlib)
 
 ################################
 # Human_localization build END #
